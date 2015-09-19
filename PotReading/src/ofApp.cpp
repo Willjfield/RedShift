@@ -3,10 +3,19 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     mySerial.setup(0, 9600); // update port no and baud rate according to your system.
-    curVal = 0;
-    ofSetLineWidth(2);
-    lastVal=0;
-    dVal=0;
+    curVal = 0.0;
+    ofSetLineWidth(4);
+
+    
+    wave.allocate(ofGetWidth(), ofGetHeight());
+    blurPassOne.allocate(ofGetWidth(), ofGetHeight());
+    blurPassTwo.allocate(ofGetWidth(), ofGetHeight());
+    
+    shaderBlurX.load("blurX");
+    shaderBlurY.load("blurY");
+    
+    bg.loadImage("galBG.jpg");
+    bg.resize(ofGetWidth(),ofGetHeight());
 }
 
 // trim trailing spaces
@@ -76,7 +85,7 @@ string ofxGetSerialString(ofSerial &serial, char until) {
 //--------------------------------------------------------------
 void ofApp::update(){
     // Receive String from Arduino
-    
+
     string str;
     
     do {
@@ -91,42 +100,68 @@ void ofApp::update(){
             printf("%c",str[i]);
         }
         
-        curVal = ofToInt(str);
+        readVal=ofToFloat(str);
+        
+        if(readVal<50 && readVal>-50){
+            curVal = (curVal+readVal)/2;
+        }
         
         printf("\n");
         
-        
-        
     } while (str!="");
-    
-    dVal=curVal-lastVal;
 
     lineRight.clear();
     lineLeft.clear();
     
     float i;
     int j;
-    float freq = ((float)(dVal*2)+100)/2;
+    float freq = ((float)(curVal*2)+100)/2;
     
-    for(i=0;i<ofGetWidth();i+=2){
+    for(i=0;i<ofGetWidth();i+=10){
         for(j=0;j<ofGetHeight();j++){
-            vertYRight = 200+(sin(i/freq)*100);
-            vertYLeft = 200-(sin(i/freq)*100);
+            vertYRight = ofGetHeight()/2+(sin(i/freq)*100);
+            vertYLeft = ofGetHeight()/2-(sin(i/freq)*100);
             lineRight.addVertex(i+ofGetWidth()/2,vertYRight);
             lineLeft.addVertex(ofGetWidth()/2-i,vertYLeft);
         }
     }
-    lastVal=curVal;
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofBackground(128);
-    ofSetColor(255-(dVal*5),255-(abs(dVal*10)),255+(dVal*5));
     
-    lineRight.draw();
-    lineLeft.draw();
+    //ofBackground(0,0,0,20);
+    
+    
+    wave.begin();
+        ofClear(0,0,0,0);
+        ofSetColor(255-(curVal*5),255-(abs(curVal*10)),255+(curVal*5));
+        lineRight.draw();
+        lineLeft.draw();
+    wave.end();
+    /*
+    blurPassOne.begin();
+    ofClear(0,0,0,0);
+        shaderBlurX.begin();
+            shaderBlurX.setUniform1f("blurAmnt", 0.5);
+            wave.draw(0,0);
+        shaderBlurX.end();
+    blurPassOne.end();
 
+    blurPassTwo.begin();
+     ofClear(0,0,0,0);
+    
+        shaderBlurY.begin();
+            shaderBlurY.setUniform1f("blurAmnt", 0.5);
+            blurPassOne.draw(0,0);
+        shaderBlurY.end();
+    blurPassTwo.end();
+    */
+    bg.draw(0,0);
+    
+    //blurPassTwo.draw(0,0);
+    wave.draw(0,0);
+    
 }
 
 //--------------------------------------------------------------

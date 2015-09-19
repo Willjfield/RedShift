@@ -20,13 +20,20 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
         ofSerial mySerial;
-        int curVal;
+        float curVal;
+        float readVal;
         float vertYRight;
         float vertYLeft;
-        int lastVal;
-        int dVal;
     
         ofPolyline lineRight;
         ofPolyline lineLeft;
+    
+        ofShader shaderBlurX;
+        ofShader shaderBlurY;
+    
+        ofFbo wave;
+        ofFbo blurPassOne, blurPassTwo;
+    
+        ofImage bg;
 		
 };
